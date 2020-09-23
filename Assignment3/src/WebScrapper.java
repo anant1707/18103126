@@ -13,6 +13,7 @@ public class WebScrapper
     static HashSet<String> visited;//visited urls
     static FileWriter ScrapeAll;//csv file to write
     static FileWriter ScrapeFaculty;//csv file to write the faculty data
+    static FileWriter DownloadablePdfs;
     private static Document connect(String url, int tries)
     {
         if(tries > 3){
@@ -40,10 +41,19 @@ public class WebScrapper
             return null;
         }
     }
-    public static void search(String url) throws IOException //search function based on DFS
+    public static void search(String url,int depth) throws IOException //search function based on DFS
     {
         //System.out.println(url);
         visited.add(url);
+
+        if(depth>300)
+        return;
+
+        if(url.endsWith(".pdf"))
+        {
+            DownloadablePdfs.write(url+"\n");
+            return;
+        }
         Document page =connect(url,1);
         if(page==null)
         return;
@@ -66,7 +76,7 @@ public class WebScrapper
             }
 
             if(!visited.contains(suburl) && suburl.contains(BASE))
-                search(suburl);
+                search(suburl,depth+1);
         }
     }
 
@@ -77,13 +87,15 @@ public class WebScrapper
         visited= new HashSet<String>();
         ScrapeAll=new FileWriter("Data_All.csv");
         ScrapeFaculty=new FileWriter("Data_Faculty.csv");
+        DownloadablePdfs= new FileWriter("Downloadable_PDFs.csv");
         ScrapeAll.write("TAG,TEXT,LINK\n");
         BASE = input.nextLine();
         //System.out.println(BASE);
-        search(BASE);// calling the search function
+        search(BASE,0);// calling the search function
         input.close();
         ScrapeAll.close();
         ScrapeFaculty.close();
+        DownloadablePdfs.close();
     }
 
 }
